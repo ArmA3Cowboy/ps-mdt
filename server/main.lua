@@ -1848,8 +1848,16 @@ function GetVehicleOwner(plate)
 	if result and result[1] then
 		local citizenid = result[1]['citizenid']
 		local Player = QBCore.Functions.GetPlayerByCitizenId(citizenid)
-		local owner = Player.PlayerData.charinfo.firstname.." "..Player.PlayerData.charinfo.lastname
-		return owner
+		if Player ~= nil then
+			local owner = Player.PlayerData.charinfo.firstname.." "..Player.PlayerData.charinfo.lastname
+			return owner
+		else
+			local charinfo = MySQL.scalar.await('SELECT charinfo FROM players WHERE citizenid = ?', {citizenid})
+			if charinfo ~= nil then
+				local parsed = json.decode(charinfo)
+				return parsed['firstname']..' '..parsed['lastname']
+			end
+		end
 	end
 end
 
@@ -1874,7 +1882,7 @@ QBCore.Functions.CreateCallback('getWeaponInfo', function(source, cb)
 			if string.find(item.name, "WEAPON_") then
 				local invImage = ("https://cfx-nui-ox_inventory/web/images/%s.png"):format(item.name)
 				if invImage then
-					weaponInfo = {
+					local weaponInfo = {
 						serialnumber = item.metadata.serial,
 						owner = Player.PlayerData.charinfo.firstname .. " " .. Player.PlayerData.charinfo.lastname,
 						weaponmodel = QBCore.Shared.Items[string.lower(item.name)].label,
@@ -1882,6 +1890,7 @@ QBCore.Functions.CreateCallback('getWeaponInfo', function(source, cb)
 						notes = "Self Registered",
 						weapClass = "Class 1",
 					}
+					table.insert(weaponInfos, weaponInfo)
 					break
 				end
 			end
@@ -1921,10 +1930,10 @@ local function giveCitationItem(src, citizenId, fine, incidentId)
 	if Config.InventoryForWeaponsImages == "ox_inventory" then
 		info = {
 			description = {
-				'Citizen ID: ' .. citizenId '  \n',
-				'Fine: $ ' .. fine '  \n',
-				'Date: ' .. date '  \n',
-				'Incitent ID: # ' .. incidentId '  \n',
+				'Citizen ID: ' .. citizenId .. '  \n',
+				'Fine: $ ' .. fine .. '  \n',
+				'Date: ' .. date .. '  \n',
+				'Incident ID: # ' .. incidentId .. '  \n',
 				'Officer: ' .. OfficerFullName
 			}
 		}

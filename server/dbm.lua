@@ -52,7 +52,7 @@ function CreateUser(cid, tableName)
 	return MySQL.insert.await("INSERT INTO `"..tableName.."` (cid) VALUES (:cid)", { cid = cid })
 end
 
-function GetPlayerVehicles(cid, cb)
+function GetPlayerVehicles(cid)
 	return MySQL.query.await('SELECT id, plate, vehicle FROM player_vehicles WHERE citizenid=:cid', { cid = cid })
 end
 
@@ -60,7 +60,7 @@ function GetBulletins(JobType)
 	return MySQL.query.await('SELECT * FROM `mdt_bulletin` WHERE `jobtype` = ? LIMIT 10', { JobType })
 end
 
-function GetPlayerProperties(cid, cb)
+function GetPlayerProperties(cid)
 	local result =  MySQL.query.await('SELECT houselocations.label, houselocations.coords FROM player_houses INNER JOIN houselocations ON player_houses.house = houselocations.name where player_houses.citizenid = ?', {cid})
 	return result
 end
@@ -85,12 +85,12 @@ function GetOwnerName(cid)
 	return result
 end
 
-function GetVehicleInformation(plate, cb)
+function GetVehicleInformation(plate)
     local result = MySQL.query.await('SELECT id, information FROM `mdt_vehicleinfo` WHERE plate=:plate', { plate = plate})
-	cb(result)
+	return result
 end
 
-function GetPlayerApartment(cid, cb)
+function GetPlayerApartment(cid)
     local result =  MySQL.query.await('SELECT name, type, label FROM apartments where citizenid = ?', {cid})
     return result
 end
