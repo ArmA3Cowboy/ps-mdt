@@ -68,7 +68,7 @@ RegisterNetEvent('ps-mdt:client:TakeOutImpound', function(data)
     takeDist = vector3(takeDist.x, takeDist.y,  takeDist.z)
     if #(pos - takeDist) <= 15.0 then
         local vehicle = data.vehicle
-        TakeOutImpound(data)
+        TakeOutImpound(vehicle)
     else
         QBCore.Functions.Notify("You are too far away from the impound location!")
     end
