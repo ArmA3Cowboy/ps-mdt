@@ -1,8 +1,21 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+QBCore = QBCore or (GetResourceState('qb-core') == 'started' and exports['qb-core']:GetCoreObject() or {})
+
+-- Validate and sanitize a table name against an allow-list to prevent SQL injection.
+-- Table names configured in Config.Database must match this pattern.
+local function _safeTable(name, fallback)
+    if type(name) == 'string' and name:match('^[%a_][%a%d_]*$') then
+        return name
+    end
+    print(('[ps-mdt] WARNING: invalid table name "' .. tostring(name) .. '", falling back to "' .. fallback .. '"'))
+    return fallback
+end
+
+local function _playersTable()  return _safeTable(Config.Database.PlayersTable,  'players')  end
+local function _vehiclesTable() return _safeTable(Config.Database.VehiclesTable, 'player_vehicles') end
 
 -- Get CitizenIDs from Player License
 function GetCitizenID(license)
-    local result = MySQL.query.await("SELECT citizenid FROM players WHERE license = ?", {license,})
+    local result = MySQL.query.await("SELECT citizenid FROM " .. _playersTable() .. " WHERE license = ?", {license,})
     if result ~= nil then
         return result
     else
@@ -17,7 +30,7 @@ function AddLog(text)
 end
 
 function GetNameFromId(cid)
-	local result = MySQL.scalar.await('SELECT charinfo FROM players WHERE citizenid = @citizenid', { ['@citizenid'] = cid })
+	local result = MySQL.scalar.await('SELECT charinfo FROM ' .. _playersTable() .. ' WHERE citizenid = @citizenid', { ['@citizenid'] = cid })
     if result ~= nil then
         local charinfo = json.decode(result)
         local fullname = charinfo['firstname']..' '..charinfo['lastname']
@@ -53,7 +66,7 @@ function CreateUser(cid, tableName)
 end
 
 function GetPlayerVehicles(cid)
-	return MySQL.query.await('SELECT id, plate, vehicle FROM player_vehicles WHERE citizenid=:cid', { cid = cid })
+	return MySQL.query.await('SELECT id, plate, vehicle FROM ' .. _vehiclesTable() .. ' WHERE citizenid=:cid', { cid = cid })
 end
 
 function GetBulletins(JobType)
@@ -71,7 +84,7 @@ function GetPlayerDataById(id)
 		local response = {citizenid = Player.PlayerData.citizenid, charinfo = Player.PlayerData.charinfo, metadata = Player.PlayerData.metadata, job = Player.PlayerData.job}
         return response
     else
-        return MySQL.single.await('SELECT citizenid, charinfo, job, metadata FROM players WHERE citizenid = ? LIMIT 1', { id })
+        return MySQL.single.await('SELECT citizenid, charinfo, job, metadata FROM ' .. _playersTable() .. ' WHERE citizenid = ? LIMIT 1', { id })
     end
 end
 
@@ -81,7 +94,7 @@ function GetBoloStatus(plate)
 end
 
 function GetOwnerName(cid)
-	local result = MySQL.scalar.await('SELECT charinfo FROM `players` WHERE LOWER(`citizenid`) = ? LIMIT 1', {cid})
+	local result = MySQL.scalar.await('SELECT charinfo FROM `' .. _playersTable() .. '` WHERE LOWER(`citizenid`) = ? LIMIT 1', {cid})
 	return result
 end
 
@@ -101,7 +114,7 @@ function GetPlayerLicenses(identifier)
     if Player ~= nil then
         return Player.PlayerData.metadata.licences
     else
-        local result = MySQL.scalar.await('SELECT metadata FROM players WHERE citizenid = @identifier', {['@identifier'] = identifier})
+        local result = MySQL.scalar.await('SELECT metadata FROM ' .. _playersTable() .. ' WHERE citizenid = @identifier', {['@identifier'] = identifier})
         if result ~= nil then
             local metadata = json.decode(result)
             if metadata["licences"] ~= nil and metadata["licences"] then
@@ -135,7 +148,7 @@ function ManageLicense(identifier, type, status)
         Player.Functions.SetMetaData("licences", newLicenses)
     else
         local licenseType = '$.licences.'..type
-        local result = MySQL.query.await('UPDATE `players` SET `metadata` = JSON_REPLACE(`metadata`, ?, ?) WHERE `citizenid` = ?', {licenseType, licenseStatus, identifier}) --seems to not work on older MYSQL versions, think about alternative
+        local result = MySQL.query.await('UPDATE `' .. _playersTable() .. '` SET `metadata` = JSON_REPLACE(`metadata`, ?, ?) WHERE `citizenid` = ?', {licenseType, licenseStatus, identifier}) --seems to not work on older MYSQL versions, think about alternative
     end
 end
 
@@ -145,7 +158,7 @@ function UpdateAllLicenses(identifier, incomingLicenses)
         Player.Functions.SetMetaData("licences", incomingLicenses)
 
     else
-        local result = MySQL.scalar.await('SELECT metadata FROM players WHERE citizenid = @identifier', {['@identifier'] = identifier})
+        local result = MySQL.scalar.await('SELECT metadata FROM ' .. _playersTable() .. ' WHERE citizenid = @identifier', {['@identifier'] = identifier})
         result = json.decode(result)
 
         result.licences = result.licences or {
@@ -158,6 +171,6 @@ function UpdateAllLicenses(identifier, incomingLicenses)
         for k, _ in pairs(incomingLicenses) do
             result.licences[k] = incomingLicenses[k]
         end
-        MySQL.query.await('UPDATE `players` SET `metadata` = @metadata WHERE citizenid = @citizenid', {['@metadata'] = json.encode(result), ['@citizenid'] = identifier})
+        MySQL.query.await('UPDATE `' .. _playersTable() .. '` SET `metadata` = @metadata WHERE citizenid = @citizenid', {['@metadata'] = json.encode(result), ['@citizenid'] = identifier})
     end
 end

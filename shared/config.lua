@@ -1,5 +1,17 @@
 Config = Config or {}
 
+-- Framework selection: 'auto' detects qb-core or CBK_core at runtime.
+-- Set to 'qbcore' or 'cbk' to force a specific framework.
+Config.Framework = 'auto'
+
+-- Database table names used by ps-mdt queries.
+-- QBCore defaults: players / player_vehicles
+-- CBK_core defaults: characters / owned_vehicles
+Config.Database = {
+    PlayersTable  = 'players',
+    VehiclesTable = 'player_vehicles',
+}
+
 Config.OnlyShowOnDuty = true
 
 -- RECOMMENDED Fivemerr Images. DOES NOT EXPIRE. 

@@ -1,4 +1,6 @@
-QBCore = exports['qb-core']:GetCoreObject()
+if not QBCore then
+    QBCore = GetResourceState('qb-core') == 'started' and exports['qb-core']:GetCoreObject() or {}
+end
 local PlayerData = {}
 local CurrentCops = 0
 local isOpen = false
