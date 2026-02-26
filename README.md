@@ -14,6 +14,10 @@ For all support questions, ask in our [Discord](https://www.discord.gg/projectsl
 * Download ZIP
 * Drag and drop resource into your server files, make sure to remove -main in the folder name
 * Open the sql folder and run the SQL script which corresponds to your framework
+  * `qbcore.sql` – QBCore
+  * `qbox.sql` – QBox
+  * `nd_core.sql` – ND_Core (set `Config.Database.PlayersTable = 'nd_characters'` and `Config.Database.VehiclesTable = 'nd_vehicles'`)
+  * `cowboy_framework.sql` – Cowboy-Framework / CBK_Core (set `Config.Database.PlayersTable = 'characters'` and `Config.Database.VehiclesTable = 'owned_vehicles'`)
 
 # Weapon Info Export
 
