@@ -11,11 +11,13 @@ shared_script 'shared/config.lua'
 
 server_scripts {
     '@oxmysql/lib/MySQL.lua',
+    'bridge/server.lua',
     'server/utils.lua',
     'server/dbm.lua',
     'server/main.lua'
 }
 client_scripts{
+    'bridge/client.lua',
     'client/main.lua',
     'client/cl_impound.lua',
     'client/cl_mugshot.lua'

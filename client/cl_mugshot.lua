@@ -1,4 +1,6 @@
-QBCore = exports['qb-core']:GetCoreObject()
+if not QBCore then
+    QBCore = GetResourceState('qb-core') == 'started' and exports['qb-core']:GetCoreObject() or {}
+end
 local PlayerData = {}
 local mugshotInProgress, createdCamera, MugshotArray, playerData = false, 0, {}, nil
 local handle, board, board_scaleform, overlay, ped, pedcoords, x, y, z, r, suspectheading, suspectx, suspecty, suspectz, board_pos

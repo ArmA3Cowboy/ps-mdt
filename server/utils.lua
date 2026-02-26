@@ -1,4 +1,4 @@
-local QBCore = exports['qb-core']:GetCoreObject()
+QBCore = QBCore or (GetResourceState('qb-core') == 'started' and exports['qb-core']:GetCoreObject() or {})
 
 function GetPlayerData(source)
 	local Player = QBCore.Functions.GetPlayer(source)
